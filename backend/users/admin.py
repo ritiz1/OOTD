@@ -7,12 +7,13 @@ from .models import User
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
     ordering = ("email",)
-    list_display = ("email", "first_name", "last_name", "is_staff", "is_active", "date_joined")
+    list_display = ("id", "email", "first_name", "last_name", "is_staff", "is_active", "date_joined")
     search_fields = ("email", "first_name", "last_name")
     list_filter = ("is_staff", "is_active", "is_superuser")
+    readonly_fields = ("id",)
 
     fieldsets = (
-        (None, {"fields": ("email", "password")}),
+        (None, {"fields": ("id", "email", "password")}),
         ("Personal info", {"fields": ("first_name", "last_name")}),
         (
             "Permissions",

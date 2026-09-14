@@ -10,3 +10,4 @@ db.sqlite3
 .mypy_cache/
 staticfiles/
 media/
+WEARTHIS_Clothing_Database_Model.md
