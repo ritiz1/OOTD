@@ -1,0 +1,79 @@
+{
+  "type": {
+    "name": "top",
+    "subcategory": "sweater",
+    "attributes": {
+      "sleeve_length": "long",
+      "sleeve_type": "drop_shoulder",
+      "neckline": "mock_neck",
+      "collar_type": "stand",
+      "shoulder_style": "drop_shoulder",
+      "hem_style": "ribbed",
+      "closure_type": "quarter_zip",
+      "hood_type": "none",
+      "fit": "relaxed",
+      "length": "hip"
+    }
+  },
+  "colors": [
+    {
+      "name": "olive",
+      "role": "primary",
+      "percentage": 98.0
+    },
+    {
+      "name": "silver",
+      "role": "accent",
+      "percentage": 2.0
+    }
+  ],
+  "materials": [
+    {
+      "name": "unknown",
+      "percentage": null
+    }
+  ],
+  "patterns": [
+    {
+      "name": "solid",
+      "scale": "none",
+      "density": "none",
+      "orientation": "none"
+    }
+  ],
+  "details": [
+    "visible_zippers",
+    "logo",
+    "embroidery"
+  ],
+  "styles": [
+    {
+      "name": "quiet_luxury",
+      "confidence": 0.9
+    },
+    {
+      "name": "smart_casual",
+      "confidence": 0.85
+    },
+    {
+      "name": "classic",
+      "confidence": 0.8
+    },
+    {
+      "name": "casual",
+      "confidence": 0.9
+    }
+  ],
+  "pockets": [],
+  "visual_attributes": {
+    "dominant_color_hex": "#364134",
+    "brightness": "dark",
+    "saturation": "muted",
+    "visual_complexity": "simple",
+    "statement_level": "subtle",
+    "structure": "semi_structured",
+    "surface_finish": "matte",
+    "transparency": "opaque",
+    "symmetry": "symmetric"
+  }
+}

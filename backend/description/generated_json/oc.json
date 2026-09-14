@@ -1,0 +1,71 @@
+{
+  "type": {
+    "name": "outerwear",
+    "subcategory": "coat",
+    "attributes": {
+      "sleeve_length": "long",
+      "collar_type": "notched",
+      "lapel_type": "notch",
+      "closure_type": "buttons",
+      "hood_type": "none",
+      "jacket_length": "below_knee",
+      "fit": "relaxed",
+      "insulation": "light"
+    }
+  },
+  "colors": [
+    {
+      "name": "camel",
+      "role": "primary",
+      "percentage": 100.0
+    }
+  ],
+  "materials": [
+    {
+      "name": "unknown",
+      "percentage": null
+    }
+  ],
+  "patterns": [
+    {
+      "name": "solid",
+      "scale": "none",
+      "density": "none",
+      "orientation": "none"
+    }
+  ],
+  "details": [
+    "visible_buttons"
+  ],
+  "styles": [
+    {
+      "name": "classic",
+      "confidence": 0.95
+    },
+    {
+      "name": "minimalist",
+      "confidence": 0.9
+    },
+    {
+      "name": "quiet_luxury",
+      "confidence": 0.85
+    }
+  ],
+  "pockets": [
+    {
+      "name": "welt",
+      "count": 2
+    }
+  ],
+  "visual_attributes": {
+    "dominant_color_hex": "#b89467",
+    "brightness": "medium",
+    "saturation": "muted",
+    "visual_complexity": "simple",
+    "statement_level": "subtle",
+    "structure": "semi_structured",
+    "surface_finish": "matte",
+    "transparency": "opaque",
+    "symmetry": "mostly_symmetric"
+  }
+}

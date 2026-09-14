@@ -1,0 +1,78 @@
+{
+  "type": {
+    "name": "top",
+    "subcategory": "polo",
+    "attributes": {
+      "sleeve_length": "long",
+      "sleeve_type": "set_in",
+      "neckline": "none",
+      "collar_type": "polo",
+      "shoulder_style": "regular",
+      "hem_style": "straight",
+      "closure_type": "buttons",
+      "hood_type": "none",
+      "fit": "regular",
+      "length": "hip"
+    }
+  },
+  "colors": [
+    {
+      "name": "yellow",
+      "role": "primary",
+      "percentage": 45.0
+    },
+    {
+      "name": "red",
+      "role": "secondary",
+      "percentage": 45.0
+    },
+    {
+      "name": "white",
+      "role": "accent",
+      "percentage": 10.0
+    }
+  ],
+  "materials": [
+    {
+      "name": "cotton",
+      "percentage": null
+    }
+  ],
+  "patterns": [
+    {
+      "name": "striped",
+      "scale": "large",
+      "density": "medium",
+      "orientation": "horizontal"
+    }
+  ],
+  "details": [
+    "visible_buttons"
+  ],
+  "styles": [
+    {
+      "name": "preppy",
+      "confidence": 0.9
+    },
+    {
+      "name": "casual",
+      "confidence": 0.85
+    },
+    {
+      "name": "retro",
+      "confidence": 0.7
+    }
+  ],
+  "pockets": [],
+  "visual_attributes": {
+    "dominant_color_hex": "#EAA717",
+    "brightness": "medium",
+    "saturation": "vibrant",
+    "visual_complexity": "moderate",
+    "statement_level": "statement",
+    "structure": "semi_structured",
+    "surface_finish": "matte",
+    "transparency": "opaque",
+    "symmetry": "symmetric"
+  }
+}
