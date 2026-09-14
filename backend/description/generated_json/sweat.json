@@ -1,0 +1,69 @@
+{
+  "type": {
+    "name": "top",
+    "subcategory": "sweatshirt",
+    "attributes": {
+      "sleeve_length": "long",
+      "sleeve_type": "drop_shoulder",
+      "neckline": "crew",
+      "collar_type": "none",
+      "shoulder_style": "drop_shoulder",
+      "hem_style": "ribbed",
+      "closure_type": "pullover",
+      "hood_type": "none",
+      "fit": "relaxed",
+      "length": "hip"
+    }
+  },
+  "colors": [
+    {
+      "name": "royal_blue",
+      "role": "primary",
+      "percentage": 99.0
+    }
+  ],
+  "materials": [
+    {
+      "name": "cotton",
+      "percentage": null
+    }
+  ],
+  "patterns": [
+    {
+      "name": "solid",
+      "scale": "none",
+      "density": "none",
+      "orientation": "none"
+    }
+  ],
+  "details": [
+    "logo",
+    "embroidery"
+  ],
+  "styles": [
+    {
+      "name": "casual",
+      "confidence": 0.9
+    },
+    {
+      "name": "streetwear",
+      "confidence": 0.8
+    },
+    {
+      "name": "athleisure",
+      "confidence": 0.7
+    }
+  ],
+  "pockets": [],
+  "visual_attributes": {
+    "dominant_color_hex": "#1e52c8",
+    "brightness": "medium",
+    "saturation": "vibrant",
+    "visual_complexity": "simple",
+    "statement_level": "subtle",
+    "structure": "soft",
+    "surface_finish": "matte",
+    "transparency": "opaque",
+    "symmetry": "symmetric"
+  }
+}
