@@ -1,6 +1,5 @@
 package com.example.wearthis.view.auth
 
-import android.util.Patterns
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
@@ -29,66 +28,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-/** Immutable render state: a ViewModel can own this without depending on Compose. */
-data class AuthUiState(
-    val email: String = "",
-    val password: String = "",
-    val emailError: String? = null,
-    val passwordError: String? = null,
-    val errorMessage: String? = null,
-    val isLoading: Boolean = false
-)
-
-sealed interface AuthEvent {
-    data class EmailChanged(val value: String) : AuthEvent
-    data class PasswordChanged(val value: String) : AuthEvent
-    data object Submit : AuthEvent
-}
-
-/** Temporary local state owner. Replace with collected ViewModel state and event handling. */
-@Composable
-internal fun RememberedAuthScreen(
-    isSignUp: Boolean,
-    onSubmit: (String, String) -> Unit,
-    onSwitchMode: () -> Unit,
-    modifier: Modifier = Modifier,
-    onGoogleClick: (() -> Unit)? = null,
-    onForgotPasswordClick: (() -> Unit)? = null,
-    onBackClick: (() -> Unit)? = null
-) {
-    var email by rememberSaveable { mutableStateOf("") }
-    // Credentials stay in memory rather than being written to saved instance state.
-    var password by remember { mutableStateOf("") }
-    var submitted by remember { mutableStateOf(false) }
-    val emailError = if (submitted && !Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches())
-        "Enter a valid email address." else null
-    val passwordError = if (submitted && (password.isEmpty() || (isSignUp && password.length < 6)))
-        if (isSignUp) "Use at least 6 characters." else "Enter your password." else null
-
-    AuthScreen(
-        state = AuthUiState(email, password, emailError, passwordError),
-        isSignUp = isSignUp,
-        onEvent = { event ->
-            when (event) {
-                is AuthEvent.EmailChanged -> email = event.value
-                is AuthEvent.PasswordChanged -> password = event.value
-                AuthEvent.Submit -> {
-                    submitted = true
-                    if (Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches() &&
-                        password.isNotEmpty() && (!isSignUp || password.length >= 6)) {
-                        onSubmit(email.trim(), password)
-                    }
-                }
-            }
-        },
-        onSwitchMode = onSwitchMode,
-        modifier = modifier,
-        onGoogleClick = onGoogleClick,
-        onForgotPasswordClick = onForgotPasswordClick,
-        onBackClick = onBackClick
-    )
-}
+import com.example.wearthis.feature.auth.AuthEvent
+import com.example.wearthis.feature.auth.AuthUiState
 
 /** State flows down, events flow up. Only password visibility is local presentation state. */
 @Composable

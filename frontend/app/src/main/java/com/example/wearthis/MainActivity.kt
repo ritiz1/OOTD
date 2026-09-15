@@ -6,7 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.example.wearthis.navigation.AppNavHost
 import com.example.wearthis.ui.theme.WearThisTheme
-import com.example.wearthis.view.onboarding.OnboardingScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -14,10 +13,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             WearThisTheme {
-                OnboardingScreen(
-                    onGetStarted = {},
-                    onSignIn = {}
-                )
+                AppNavHost()
             }
         }
     }
