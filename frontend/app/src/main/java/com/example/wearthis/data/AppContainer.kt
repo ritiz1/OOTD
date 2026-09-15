@@ -17,7 +17,7 @@ import com.example.wearthis.repository.RemoteAuthRepository
 
 class AppContainer private constructor(context: Context) {
     val sessionStore = AuthSessionStore(context)
-    private val apiService = ApiClient.create(sessionStore)
+    val apiService = ApiClient.create(sessionStore)
 
     val authRepository: AuthRepository = RemoteAuthRepository(apiService, sessionStore)
     val profileRepository: ProfileRepository = DefaultProfileRepository(apiService)
@@ -26,7 +26,9 @@ class AppContainer private constructor(context: Context) {
     val clothingRepository: ClothingRepository = DefaultClothingRepository(
         clothingDao = AppDatabase.getInstance(context).clothingDao(),
         imageStorage = ClothingImageStorage(context),
-        remoteDataSource = RetrofitClothingRemoteDataSource(apiService)
+        remoteDataSource = RetrofitClothingRemoteDataSource(apiService),
+        sessionStore = sessionStore,
+        apiService = apiService
     )
 
     companion object {

@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ClothingDao {
+    @Query("SELECT * FROM clothing WHERE userId = :userId")
+    suspend fun itemsForUser(userId: String): List<ClothingEntity>
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(item: ClothingEntity)
 

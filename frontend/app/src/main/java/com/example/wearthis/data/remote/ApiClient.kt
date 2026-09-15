@@ -14,6 +14,8 @@ object ApiClient {
         val publicService = retrofit(OkHttpClient()).create(ApiService::class.java)
 
         val authenticatedClient = OkHttpClient.Builder()
+            .readTimeout(120, java.util.concurrent.TimeUnit.SECONDS)
+            .writeTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
             .addInterceptor { chain ->
                 val request = chain.request()
                 val token = sessionStore.accessToken

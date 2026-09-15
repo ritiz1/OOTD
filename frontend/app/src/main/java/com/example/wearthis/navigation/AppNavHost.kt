@@ -22,7 +22,9 @@ fun AppNavHost() {
         OnboardingPreferences(context.applicationContext)
     }
     val startDestination = remember {
-        if (onboardingPreferences.shouldShowOnboarding()) {
+        if (com.example.wearthis.data.AppContainer.get(context).sessionStore.accessToken != null) {
+            Routes.Home
+        } else if (onboardingPreferences.shouldShowOnboarding()) {
             Routes.Onboarding
         } else {
             Routes.Login
@@ -75,10 +77,7 @@ fun AppNavHost() {
         composable(Routes.AddClothing) {
             AddClothingScreen(
                 onSaved = {
-                    navController.navigate(Routes.Home) {
-                        popUpTo(Routes.AddClothing) { inclusive = true }
-                        launchSingleTop = true
-                    }
+                    navController.popBackStack()
                 },
                 onBack = {
                     if (!navController.popBackStack()) {
@@ -94,6 +93,13 @@ fun AppNavHost() {
             HomeScreen(
                 onAddClothing = {
                     navController.navigate(Routes.AddClothing)
+                },
+                onSignOut = {
+                    com.example.wearthis.data.AppContainer.get(context).sessionStore.clear()
+                    navController.navigate(Routes.Login) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
             )
         }
@@ -101,8 +107,8 @@ fun AppNavHost() {
 }
 
 private fun NavHostController.navigateAfterAuth() {
-    navigate(Routes.AddClothing) {
-        popUpTo(graph.startDestinationId) { inclusive = true }
+    navigate(Routes.Home) {
+        popUpTo(graph.id) { inclusive = true }
         launchSingleTop = true
     }
 }

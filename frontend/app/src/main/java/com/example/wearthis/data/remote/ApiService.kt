@@ -19,6 +19,12 @@ import retrofit2.http.POST
 import retrofit2.http.Part
 
 interface ApiService {
+    @GET("api/wardrobe/items/")
+    suspend fun clothing(): List<com.example.wearthis.data.dto.RemoteClothingDto>
+
+    @retrofit2.http.DELETE("api/wardrobe/items/{id}/")
+    suspend fun deleteClothing(@retrofit2.http.Path("id") id: String)
+
     @POST("api/auth/register/")
     suspend fun register(@Body request: RegisterRequestDto): AuthResponseDto
 
