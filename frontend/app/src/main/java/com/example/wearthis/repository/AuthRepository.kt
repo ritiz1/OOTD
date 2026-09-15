@@ -37,7 +37,8 @@ object MockAuthRepository : AuthRepository {
                     id = "mock-user",
                     email = credentials.email
                 ),
-                accessToken = "mock-access-token"
+                accessToken = "mock-access-token",
+                refreshToken = "mock-refresh-token"
             )
         )
     }
