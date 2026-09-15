@@ -1,10 +1,11 @@
 # WearThis clothing description agent
 
 `agent.py` defines only the Google ADK agent. It has no HTTP route, upload
-handler, database write, or image-download logic. A future caller should give
-the agent one image as ADK multimodal content (whether it originated from an
-upload or a URL) and read the structured result from the
-`clothing_description` output key.
+handler, database write, or image-download logic. Wardrobe's
+`POST /api/wardrobe/describe/` calls this module, then persists the result as a
+`ClothingItem` for the authenticated user. Callers should give the agent one
+image as ADK multimodal content (whether it originated from an upload or a URL)
+and read the structured result from the `clothing_description` output key.
 
 ## Setup
 

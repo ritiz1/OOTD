@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from django.conf import settings
 from rest_framework import serializers
 
 
@@ -11,8 +10,8 @@ class DescriptionInputSerializer(serializers.Serializer):
     image_url = serializers.URLField(required=False, allow_blank=False)
 
     def validate(self, attrs):
-        has_image = "image" in attrs and attrs["image"] is not None
-        has_url = "image_url" in attrs and attrs["image_url"]
+        has_image = bool(self.initial_data.get("image"))
+        has_url = bool(self.initial_data.get("image_url"))
         if has_image == has_url:
             raise serializers.ValidationError(
                 "Provide exactly one of 'image' or 'image_url'."
@@ -33,14 +32,18 @@ class ClothingDescriptionSchemaSerializer(serializers.Serializer):
     visual_attributes = serializers.DictField()
 
 
-class ClothingItemCreateSerializer(serializers.Serializer):
-    """Serializer placeholder for turning an agent payload into a wardrobe item."""
+class ClothingAnalysisResponseSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    model_name = serializers.CharField()
+    model_version = serializers.CharField()
+    overall_confidence = serializers.FloatField(allow_null=True)
 
-    image_url = serializers.CharField(required=False, allow_blank=True)
-    type = serializers.CharField(required=False)
-    visual_attributes = serializers.DictField(required=False)
 
-    def validate(self, attrs):
-        if not attrs.get("image_url"):
-            attrs["image_url"] = settings.DEFAULT_FILE_STORAGE
-        return attrs
+class ClothingItemDescribeResponseSerializer(serializers.Serializer):
+    """Response payload after describe persists a ClothingItem."""
+
+    id = serializers.UUIDField()
+    image_url = serializers.CharField()
+    user = serializers.UUIDField()
+    description = ClothingDescriptionSchemaSerializer()
+    analysis = ClothingAnalysisResponseSerializer()
