@@ -376,3 +376,81 @@ class RecommendAPITests(TestCase):
         sent_payload = mock_agent.call_args.args[0]
         self.assertEqual(sent_payload["schedule"][0]["event_id"], "morning-class")
         self.assertEqual(sent_payload["clothing_items"][0]["id"], item_id)
+
+
+class ClothingItemViewsTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            email="items@example.com", password="strongpass123"
+        )
+        self.other_user = User.objects.create_user(
+            email="other-items@example.com", password="strongpass123"
+        )
+        self.client.force_authenticate(user=self.user)
+
+    def _create_item(self, user=None, image_url="https://example.com/black-shirt.jpg"):
+        return persist_clothing_description(
+            user=user or self.user,
+            image_url=image_url,
+            description=SAMPLE_DESCRIPTION,
+            model_name="gemini/test",
+        )
+
+    def test_list_returns_only_the_authenticated_users_grid_items(self):
+        item = self._create_item()
+        self._create_item(user=self.other_user, image_url="https://example.com/other.jpg")
+
+        response = self.client.get("/api/wardrobe/items/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual([row["id"] for row in response.data], [str(item.id)])
+        self.assertEqual(response.data[0]["type"]["subcategory"], "t_shirt")
+        self.assertEqual(response.data[0]["primary_color"], "black")
+
+    def test_list_supports_category_color_and_detected_attribute_search(self):
+        item = self._create_item()
+
+        response = self.client.get("/api/wardrobe/items/?category=tops&color=black")
+        self.assertEqual([row["id"] for row in response.data], [str(item.id)])
+
+        response = self.client.get("/api/wardrobe/items/?search=black%20casual")
+        self.assertEqual([row["id"] for row in response.data], [str(item.id)])
+
+    def test_detail_returns_all_detected_attributes(self):
+        item = self._create_item()
+
+        response = self.client.get(f"/api/wardrobe/items/{item.id}/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["type"]["attributes"]["neckline"], "crew")
+        self.assertEqual(response.data["colors"][0]["name"], "black")
+        self.assertEqual(response.data["styles"][0]["name"], "casual")
+
+    def test_patch_replaces_detected_metadata_without_changing_item_id(self):
+        item = self._create_item()
+        description = {**SAMPLE_DESCRIPTION}
+        description["colors"] = [{"name": "white", "role": "primary", "percentage": 100}]
+        description["styles"] = [{"name": "formal", "confidence": 0.9}]
+
+        response = self.client.patch(
+            f"/api/wardrobe/items/{item.id}/",
+            {"description": description},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        self.assertEqual(response.data["id"], str(item.id))
+        self.assertEqual(response.data["colors"][0]["name"], "white")
+        self.assertEqual(response.data["styles"][0]["name"], "formal")
+        self.assertEqual(ClothingItem.objects.filter(pk=item.id).count(), 1)
+
+    def test_item_detail_is_not_available_to_other_users_and_can_be_deleted(self):
+        item = self._create_item(user=self.other_user)
+        response = self.client.get(f"/api/wardrobe/items/{item.id}/")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        own_item = self._create_item()
+        response = self.client.delete(f"/api/wardrobe/items/{own_item.id}/")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(ClothingItem.objects.filter(pk=own_item.id).exists())
