@@ -4,6 +4,10 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+val wearThisApiBaseUrl = providers.gradleProperty("WEARTHIS_API_BASE_URL")
+    .orElse("http://10.0.2.2:8000/")
+    .get()
+
 android {
     namespace = "com.example.wearthis"
     compileSdk {
@@ -18,6 +22,7 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
+        buildConfigField("String", "API_BASE_URL", "\"$wearThisApiBaseUrl\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -37,6 +42,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -55,6 +61,9 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.coil.compose)
+    implementation(libs.retrofit.core)
+    implementation(libs.retrofit.gson)
+    implementation(libs.okhttp.core)
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -41,7 +41,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
-import com.example.wearthis.data.ClothingContainer
+import com.example.wearthis.data.AppContainer
 import com.example.wearthis.feature.closet.AddClothingEvent
 import com.example.wearthis.feature.closet.AddClothingUiState
 import com.example.wearthis.ui.theme.WearThisTheme
@@ -53,9 +53,12 @@ fun AddClothingScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     addClothingViewModel: AddClothingViewModel = viewModel(
-        factory = AddClothingViewModel.Factory(
-            ClothingContainer.repository(LocalContext.current.applicationContext)
-        )
+        factory = AppContainer.get(LocalContext.current).let { container ->
+            AddClothingViewModel.Factory(
+                repository = container.clothingRepository,
+                userId = container.sessionStore.userId.orEmpty()
+            )
+        }
     )
 ) {
     val state by addClothingViewModel.uiState.collectAsState()

@@ -8,7 +8,6 @@ import com.example.wearthis.feature.auth.AuthEvent
 import com.example.wearthis.feature.auth.AuthMode
 import com.example.wearthis.feature.auth.AuthUiState
 import com.example.wearthis.repository.AuthRepository
-import com.example.wearthis.repository.MockAuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -58,8 +57,8 @@ class AuthViewModel(
         val emailError = if (isValidEmail(email)) null else "Enter a valid email address."
         val passwordError = when {
             currentState.password.isBlank() -> "Enter your password."
-            mode == AuthMode.SignUp && currentState.password.length < 6 ->
-                "Use at least 6 characters."
+            mode == AuthMode.SignUp && currentState.password.length < 8 ->
+                "Use at least 8 characters."
             else -> null
         }
 
@@ -118,7 +117,7 @@ class AuthViewModel(
 
     class Factory(
         private val mode: AuthMode,
-        private val repository: AuthRepository = MockAuthRepository
+        private val repository: AuthRepository
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {

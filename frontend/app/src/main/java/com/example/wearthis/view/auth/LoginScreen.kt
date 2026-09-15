@@ -5,8 +5,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.wearthis.data.AppContainer
 import com.example.wearthis.feature.auth.AuthEvent
 import com.example.wearthis.feature.auth.AuthMode
 import com.example.wearthis.feature.auth.AuthUiState
@@ -21,7 +23,10 @@ fun LoginScreen(
     onGoogleClick: (() -> Unit)? = null,
     onForgotPasswordClick: (() -> Unit)? = null,
     authViewModel: AuthViewModel = viewModel(
-        factory = AuthViewModel.Factory(AuthMode.Login)
+        factory = AuthViewModel.Factory(
+            mode = AuthMode.Login,
+            repository = AppContainer.get(LocalContext.current).authRepository
+        )
     )
 ) {
     val state by authViewModel.uiState.collectAsState()

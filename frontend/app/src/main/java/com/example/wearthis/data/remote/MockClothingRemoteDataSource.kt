@@ -1,6 +1,7 @@
 package com.example.wearthis.data.remote
 
 import com.example.wearthis.data.dto.ClothingUploadResponseDto
+import com.example.wearthis.data.dto.ClothingAnalysisDto
 import java.io.File
 import kotlinx.coroutines.delay
 
@@ -15,7 +16,15 @@ class MockClothingRemoteDataSource : ClothingRemoteDataSource {
         val backendId = "cloth_$localId"
         return ClothingUploadResponseDto(
             id = backendId,
-            imageUrl = "https://mock.wearthis.app/clothing/$backendId"
+            imageUrl = "https://mock.wearthis.app/clothing/$backendId",
+            user = "mock-user",
+            description = emptyMap(),
+            analysis = ClothingAnalysisDto(
+                id = "mock-analysis",
+                modelName = "mock",
+                modelVersion = "1",
+                overallConfidence = null
+            )
         )
     }
 

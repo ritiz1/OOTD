@@ -15,7 +15,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class AddClothingViewModel(
-    private val repository: ClothingRepository
+    private val repository: ClothingRepository,
+    private val userId: String
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AddClothingUiState())
@@ -64,11 +65,17 @@ class AddClothingViewModel(
             return
         }
         if (_uiState.value.isSaving) return
+        if (userId.isBlank()) {
+            _uiState.update {
+                it.copy(errorMessage = "Your session expired. Sign in again.")
+            }
+            return
+        }
 
         _uiState.update { it.copy(isSaving = true, errorMessage = null) }
         viewModelScope.launch {
             repository.addClothing(
-                userId = MOCK_USER_ID,
+                userId = userId,
                 selectedImageUri = selectedImageUri
             ).fold(
                 onSuccess = {
@@ -124,16 +131,13 @@ class AddClothingViewModel(
     }
 
     class Factory(
-        private val repository: ClothingRepository
+        private val repository: ClothingRepository,
+        private val userId: String
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             require(modelClass.isAssignableFrom(AddClothingViewModel::class.java))
-            return AddClothingViewModel(repository) as T
+            return AddClothingViewModel(repository, userId) as T
         }
-    }
-
-    private companion object {
-        const val MOCK_USER_ID = "mock-user"
     }
 }
