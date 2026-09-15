@@ -10,9 +10,6 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-# Import this before ADK can lazily import LiteLLM. See litellm_compat for the
-# Python 3.10 compatibility detail.
-import litellm_compat  # noqa: F401
 from google.adk.agents import LlmAgent
 from google.adk.models.lite_llm import LiteLlm
 

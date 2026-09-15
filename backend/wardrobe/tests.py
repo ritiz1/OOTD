@@ -35,16 +35,6 @@ class _FakeDescription:
         return self._payload
 
 
-class LiteLLMCompatibilityTests(TestCase):
-    def test_litellm_imports_on_python_310(self):
-        """Guard against LiteLLM importing 3.11-only typing names on 3.10."""
-
-        import litellm_compat  # noqa: F401
-        import litellm
-
-        self.assertIsNotNone(litellm)
-
-
 User = get_user_model()
 
 
