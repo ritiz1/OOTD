@@ -9,7 +9,10 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from schemas import DailyRecommendation
+try:
+    from .schemas import DailyRecommendation
+except ImportError:  # pragma: no cover - CLI when run as a script
+    from schemas import DailyRecommendation
 
 
 ITEM_FIELDS = (

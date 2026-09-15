@@ -16,7 +16,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 
 from recommendation.agent import root_agent
-from validate_output import validate_recommendations
+from recommendation.validate_output import validate_recommendations
 
 
 INPUT_PATH = HERE / "sample_input.json"

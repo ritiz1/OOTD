@@ -3,13 +3,27 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import models
 from django.test import TestCase, override_settings
 from PIL import Image
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from wardrobe.models import ClothingItem
+from wardrobe.models import (
+    ClothingColorGroup,
+    ClothingDetailGroup,
+    ClothingItem,
+    ClothingMaterialGroup,
+    ClothingPatternGroup,
+    ClothingPocketGroup,
+    ClothingStyleGroup,
+    ClothingSubcategory,
+    ClothingType,
+    TopAttributes,
+    VisualAttributes,
+)
 from wardrobe.services import persist_clothing_description
+from recommendation.schemas import DailyRecommendation
 
 
 class _FakeDescription:
@@ -205,3 +219,144 @@ class DescribeClothingItemPersistAPITests(TestCase):
         item = ClothingItem.objects.get(id=response.data["id"])
         self.assertEqual(item.user_id, self.user.id)
         self.assertEqual(item.image_url, remote_url)
+
+
+def _choice_values(model_class) -> dict:
+    """Build valid values for every required choice field on a test model."""
+    values = {}
+    for field in model_class._meta.concrete_fields:
+        if (
+            isinstance(field, models.CharField)
+            and field.choices
+            and not field.blank
+            and field.name != "id"
+        ):
+            values[field.name] = field.choices[0][0]
+    return values
+
+
+SAMPLE_SCHEDULE = [
+    {
+        "event_id": "morning-class",
+        "start_time": "09:00",
+        "end_time": "11:00",
+        "activity": "Class on campus",
+        "weather": {
+            "status": "cool and breezy",
+            "temperature_c": 12,
+            "precipitation": "none",
+        },
+    }
+]
+
+
+class RecommendAPITests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            email="recommend@example.com",
+            password="strongpass123",
+        )
+        self.client.force_authenticate(user=self.user)
+
+    def _create_item(self, suffix: str) -> ClothingItem:
+        attributes = TopAttributes.objects.create(**_choice_values(TopAttributes))
+        subcategory = ClothingSubcategory.objects.create(
+            type_name="top", name=f"test_top_{suffix}"
+        )
+        clothing_type = ClothingType.objects.create(
+            name="top",
+            subcategory=subcategory,
+            top_attributes=attributes,
+        )
+        visual = VisualAttributes.objects.create(**_choice_values(VisualAttributes))
+        return ClothingItem.objects.create(
+            user=self.user,
+            image_url=f"https://example.com/{suffix}.jpg",
+            type=clothing_type,
+            color_group=ClothingColorGroup.objects.create(),
+            material_group=ClothingMaterialGroup.objects.create(),
+            pattern_group=ClothingPatternGroup.objects.create(),
+            detail_group=ClothingDetailGroup.objects.create(),
+            style_group=ClothingStyleGroup.objects.create(),
+            pocket_group=ClothingPocketGroup.objects.create(),
+            visual_attributes=visual,
+        )
+
+    def test_unauthenticated_recommend_returns_401(self):
+        self.client.force_authenticate(user=None)
+        response = self.client.post(
+            "/api/wardrobe/recommend/",
+            {"schedule": SAMPLE_SCHEDULE},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_missing_schedule_returns_400(self):
+        response = self.client.post("/api/wardrobe/recommend/", {}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_empty_schedule_returns_400(self):
+        response = self.client.post(
+            "/api/wardrobe/recommend/",
+            {"schedule": []},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_empty_wardrobe_returns_400(self):
+        response = self.client.post(
+            "/api/wardrobe/recommend/",
+            {"schedule": SAMPLE_SCHEDULE},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("wardrobe", response.data["detail"].lower())
+
+    def test_recommend_input_serializer_accepts_schedule(self):
+        from wardrobe.serializers import RecommendInputSerializer
+
+        serializer = RecommendInputSerializer(data={"schedule": SAMPLE_SCHEDULE})
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+
+    @patch("wardrobe.views.recommend_view.run_recommendation_agent")
+    def test_recommend_returns_plan(self, mock_agent):
+        item = self._create_item("owned")
+        item_id = str(item.id)
+        mock_agent.return_value = DailyRecommendation.model_validate(
+            {
+                "recommendations": [
+                    {
+                        "event_id": "morning-class",
+                        "start_time": "09:00",
+                        "end_time": "11:00",
+                        "activity": "Class on campus",
+                        "clothing_item_ids": [item_id],
+                        "keep_item_ids": [],
+                        "remove_item_ids": [],
+                        "put_on_item_ids": [item_id],
+                        "pack_item_ids": [],
+                        "reason": "Wear the available top for class.",
+                        "warnings": [],
+                    }
+                ]
+            }
+        )
+
+        response = self.client.post(
+            "/api/wardrobe/recommend/",
+            {"schedule": SAMPLE_SCHEDULE},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        self.assertEqual(len(response.data["recommendations"]), 1)
+        self.assertEqual(
+            response.data["recommendations"][0]["clothing_item_ids"],
+            [item_id],
+        )
+        mock_agent.assert_called_once()
+        self.assertEqual(mock_agent.call_args.kwargs["user_id"], str(self.user.id))
+        sent_payload = mock_agent.call_args.args[0]
+        self.assertEqual(sent_payload["schedule"][0]["event_id"], "morning-class")
+        self.assertEqual(sent_payload["clothing_items"][0]["id"], item_id)

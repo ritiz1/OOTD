@@ -47,3 +47,43 @@ class ClothingItemDescribeResponseSerializer(serializers.Serializer):
     user = serializers.UUIDField()
     description = ClothingDescriptionSchemaSerializer()
     analysis = ClothingAnalysisResponseSerializer()
+
+
+class ScheduleWeatherSerializer(serializers.Serializer):
+    status = serializers.CharField()
+    temperature_c = serializers.FloatField()
+    precipitation = serializers.CharField()
+
+
+class ScheduleEventSerializer(serializers.Serializer):
+    event_id = serializers.CharField()
+    start_time = serializers.CharField()
+    end_time = serializers.CharField()
+    activity = serializers.CharField()
+    weather = ScheduleWeatherSerializer()
+
+
+class RecommendInputSerializer(serializers.Serializer):
+    """Validate the schedule sent to the outfit recommendation agent."""
+
+    schedule = ScheduleEventSerializer(many=True, allow_empty=False)
+
+
+class TimeRecommendationSerializer(serializers.Serializer):
+    event_id = serializers.CharField()
+    start_time = serializers.CharField()
+    end_time = serializers.CharField()
+    activity = serializers.CharField()
+    clothing_item_ids = serializers.ListField(child=serializers.CharField())
+    keep_item_ids = serializers.ListField(child=serializers.CharField())
+    remove_item_ids = serializers.ListField(child=serializers.CharField())
+    put_on_item_ids = serializers.ListField(child=serializers.CharField())
+    pack_item_ids = serializers.ListField(child=serializers.CharField())
+    reason = serializers.CharField()
+    warnings = serializers.ListField(child=serializers.CharField())
+
+
+class DailyRecommendationResponseSerializer(serializers.Serializer):
+    """Validated outfit plan returned by the recommendation agent."""
+
+    recommendations = TimeRecommendationSerializer(many=True)

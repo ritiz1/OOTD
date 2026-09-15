@@ -1,4 +1,4 @@
-"""Structured response from the temporary outfit-planning agent."""
+"""Structured response from the outfit-planning agent."""
 
 from pydantic import BaseModel, ConfigDict, Field
 
