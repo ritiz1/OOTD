@@ -9,7 +9,10 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from schemas import DailyRecommendation
+try:
+    from .schemas import DailyRecommendation
+except ImportError:  # Allow direct execution from the backend folder.
+    from schemas import DailyRecommendation
 
 
 ITEM_FIELDS = (

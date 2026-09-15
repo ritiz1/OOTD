@@ -8,14 +8,12 @@ import json
 import sys
 from pathlib import Path
 
-from google.adk.runners import InMemoryRunner
-from google.genai import types
 from litellm.exceptions import ServiceUnavailableError
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 
-from recommendation.agent import root_agent
+from recommendation.service import run_recommendation_agent
 from validate_output import validate_recommendations
 
 
@@ -24,34 +22,8 @@ OUTPUT_PATH = HERE / "latest_output.json"
 
 
 async def request_recommendation(sample: dict) -> dict:
-    """Send the sample as one message and parse ADK's final response."""
-    message = types.Content(
-        role="user",
-        parts=[types.Part(text=json.dumps(sample))],
-    )
-    final_text = None
-
-    async with InMemoryRunner(agent=root_agent, app_name="recommendation_test") as runner:
-        await runner.session_service.create_session(
-            app_name=runner.app_name,
-            user_id="sample-user",
-            session_id="sample-run",
-        )
-        async for event in runner.run_async(
-            user_id="sample-user",
-            session_id="sample-run",
-            new_message=message,
-        ):
-            if event.error_code:
-                raise RuntimeError(f"ADK error: {event.error_code}")
-            if event.is_final_response() and event.content:
-                final_text = "".join(
-                    part.text or "" for part in event.content.parts or []
-                )
-
-    if not final_text:
-        raise RuntimeError("ADK returned no final text response.")
-    return json.loads(final_text)
+    """Send the sample through the same service used by the Django API."""
+    return await run_recommendation_agent(sample, user_id="sample-user")
 
 
 async def main() -> int:
