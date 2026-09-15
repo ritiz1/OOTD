@@ -9,6 +9,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from gemini_fallback import GeminiUnavailableError, run_with_gemini_fallback
 from recommendation.schemas import DailyRecommendation
 from recommendation.validate_output import validate_recommendations
 from recommendation.wardrobe_payload import wardrobe_items_for_user
@@ -31,34 +32,28 @@ async def run_recommendation_agent(payload: dict, *, user_id: str) -> DailyRecom
     from google.adk.sessions import InMemorySessionService
     from google.genai import types
 
-    from recommendation.agent import root_agent
-
-    session_service = InMemorySessionService()
-    session = await session_service.create_session(app_name=APP_NAME, user_id=user_id)
-    runner = Runner(app_name=APP_NAME, agent=root_agent, session_service=session_service)
+    from recommendation.agent import create_agent
 
     message = types.Content(
         role="user",
         parts=[types.Part.from_text(text=json.dumps(payload))],
     )
 
-    final_text: str | None = None
-    async for event in runner.run_async(
-        user_id=user_id,
-        session_id=session.id,
-        new_message=message,
-    ):
-        if getattr(event, "error_code", None):
-            raise RuntimeError(f"ADK error: {event.error_code}")
-        if event.is_final_response() and event.content:
-            final_text = "".join(
-                part.text for part in event.content.parts if getattr(part, "text", None)
-            ) or final_text
+    async def call(model_name: str):
+        session_service = InMemorySessionService()
+        session = await session_service.create_session(app_name=APP_NAME, user_id=user_id)
+        runner = Runner(app_name=APP_NAME, agent=create_agent(model_name), session_service=session_service)
+        final_text: str | None = None
+        async for event in runner.run_async(user_id=user_id, session_id=session.id, new_message=message):
+            if getattr(event, "error_code", None):
+                raise RuntimeError(f"ADK error: {event.error_code}")
+            if event.is_final_response() and event.content:
+                final_text = "".join(part.text for part in event.content.parts if getattr(part, "text", None)) or final_text
+        if not final_text:
+            raise RuntimeError("The recommendation agent did not return a final response.")
+        return DailyRecommendation.model_validate_json(final_text)
 
-    if not final_text:
-        raise RuntimeError("The recommendation agent did not return a final response.")
-
-    return DailyRecommendation.model_validate_json(final_text)
+    return await run_with_gemini_fallback(call)
 
 
 @api_view(["POST"])
@@ -85,6 +80,11 @@ def recommend_outfits(request):
     try:
         model_payload = asyncio.run(
             run_recommendation_agent(agent_input, user_id=user_id)
+        )
+    except GeminiUnavailableError as exc:
+        return Response(
+            {"detail": str(exc)},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
         )
     except Exception as exc:
         return Response(

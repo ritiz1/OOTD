@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import mimetypes
-import os
 import uuid
 from pathlib import Path
 from urllib.request import Request, urlopen
@@ -15,6 +14,7 @@ from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
+from gemini_fallback import GeminiUnavailableError, model_order, run_with_gemini_fallback
 from wardrobe.serializers import (
     ClothingDescriptionSchemaSerializer,
     ClothingItemDescribeResponseSerializer,
@@ -28,7 +28,7 @@ load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 
 APP_NAME = "wearthis_description_api"
-DEFAULT_MODEL_NAME = os.getenv("WEARTHIS_GEMINI_MODEL", "gemini/gemini-3.6-flash")
+DEFAULT_MODEL_NAME = model_order()[0]
 
 
 def _extension_for_mime(mime_type: str, fallback_name: str = "") -> str:
@@ -62,11 +62,7 @@ async def run_description_agent(
     from google.adk.sessions import InMemorySessionService
     from google.genai import types
 
-    from description.agent import ClothingDescription, root_agent
-
-    session_service = InMemorySessionService()
-    session = await session_service.create_session(app_name=APP_NAME, user_id=user_id)
-    runner = Runner(app_name=APP_NAME, agent=root_agent, session_service=session_service)
+    from description.agent import ClothingDescription, create_agent
 
     message = types.Content(
         role="user",
@@ -76,35 +72,27 @@ async def run_description_agent(
         ],
     )
 
-    result: object | None = None
-    final_text: str | None = None
-    async for event in runner.run_async(
-        user_id=user_id,
-        session_id=session.id,
-        new_message=message,
-    ):
-        if event.actions and event.actions.state_delta:
-            result = event.actions.state_delta.get("clothing_description", result)
-        if event.is_final_response() and event.content:
-            final_text = "".join(
-                part.text for part in event.content.parts if getattr(part, "text", None)
-            ) or final_text
+    async def call(model_name: str):
+        session_service = InMemorySessionService()
+        session = await session_service.create_session(app_name=APP_NAME, user_id=user_id)
+        runner = Runner(app_name=APP_NAME, agent=create_agent(model_name), session_service=session_service)
+        result: object | None = None
+        final_text: str | None = None
+        async for event in runner.run_async(user_id=user_id, session_id=session.id, new_message=message):
+            if event.actions and event.actions.state_delta:
+                result = event.actions.state_delta.get("clothing_description", result)
+            if event.is_final_response() and event.content:
+                final_text = "".join(part.text for part in event.content.parts if getattr(part, "text", None)) or final_text
+        if result is None:
+            latest_session = await session_service.get_session(app_name=APP_NAME, user_id=user_id, session_id=session.id)
+            result = latest_session.state.get("clothing_description")
+        if result is None:
+            result = final_text
+        if result is None:
+            raise RuntimeError("The description agent did not return clothing_description JSON.")
+        return ClothingDescription.model_validate_json(result) if isinstance(result, str) else ClothingDescription.model_validate(result)
 
-    if result is None:
-        latest_session = await session_service.get_session(
-            app_name=APP_NAME,
-            user_id=user_id,
-            session_id=session.id,
-        )
-        result = latest_session.state.get("clothing_description")
-    if result is None and final_text:
-        result = final_text
-    if result is None:
-        raise RuntimeError("The description agent did not return clothing_description JSON.")
-
-    if isinstance(result, str):
-        return ClothingDescription.model_validate_json(result)
-    return ClothingDescription.model_validate(result)
+    return await run_with_gemini_fallback(call)
 
 
 @api_view(["POST"])
@@ -150,6 +138,10 @@ def describe_clothing_item(request):
         model_payload = asyncio.run(
             run_description_agent(image_bytes, mime_type, user_id=user_id)
         )
+    except GeminiUnavailableError as exc:
+        if uploaded_storage_path:
+            default_storage.delete(uploaded_storage_path)
+        return Response({"detail": str(exc)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
     except Exception as exc:
         if uploaded_storage_path:
             default_storage.delete(uploaded_storage_path)

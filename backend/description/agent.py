@@ -269,14 +269,22 @@ six-digit hex color. Style confidences must be from 0 through 1.
 """.strip()
 
 
-root_agent = Agent(
-    name="clothing_description_agent",
-    description="Extracts database-constrained metadata from one clothing image.",
-    model=LiteLlm(
-        model=os.getenv("WEARTHIS_GEMINI_MODEL", "gemini/gemini-3.6-flash"),
-        api_key=os.getenv("GEMINI_API_KEY"),
-    ),
-    instruction=INSTRUCTION,
-    output_schema=ClothingDescription,
-    output_key="clothing_description",
-)
+def create_agent(model_name: str) -> Agent:
+    """Create the description agent for one Gemini model in the fallback order."""
+
+    return Agent(
+        name="clothing_description_agent",
+        description="Extracts database-constrained metadata from one clothing image.",
+        model=LiteLlm(
+            model=f"gemini/{model_name}",
+            api_key=os.getenv("GEMINI_API_KEY"),
+        ),
+        instruction=INSTRUCTION,
+        output_schema=ClothingDescription,
+        output_key="clothing_description",
+    )
+
+
+# Retained for standalone agent tooling; API requests use create_agent() so they
+# can select a retry/fallback model.
+root_agent = create_agent(os.getenv("WEARTHIS_GEMINI_MODEL", "gemini-3.8-flash").removeprefix("gemini/"))
