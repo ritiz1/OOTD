@@ -23,3 +23,13 @@ Android: `gradlew.bat :app:assembleDebug :app:testDebugUnitTest`
 Backend: `.venv\Scripts\python.exe manage.py test wardrobe recommendation users --noinput`
 
 Unit tests cover event ordering, Celsius serialization, destination time zones, persistence, and account isolation for the new wardrobe endpoints. Live AI calls, device location, and the complete on-device flow still require a configured running backend and device verification.
+
+### Connected physical phone (USB or wireless debugging)
+
+The developer-machine override in `frontend/local.properties` is now `WEARTHIS_API_BASE_URL=http://127.0.0.1:8000/`. Gradle reads this after any `-PWEARTHIS_API_BASE_URL` command-line override and before the emulator default. Rebuild/reinstall after changing the URL.
+
+1. In `backend`, run `.venv\Scripts\python.exe manage.py runserver 127.0.0.1:8000`.
+2. With the phone connected to ADB, run `adb reverse tcp:8000 tcp:8000`.
+3. Run the app on the phone. Repeat the reverse command after reconnecting/rebooting the phone.
+
+Here, `127.0.0.1:8000` on the phone is forwarded to the backend on the computer. No LAN firewall change is needed. For use without a debugging connection, use the LAN setup above instead.

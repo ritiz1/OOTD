@@ -1,10 +1,18 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
 }
 
+val localConfiguration = Properties().apply {
+    val localFile = rootProject.file("local.properties")
+    if (localFile.exists()) localFile.inputStream().use { load(it) }
+}
+
 val wearThisApiBaseUrl = providers.gradleProperty("WEARTHIS_API_BASE_URL")
+    .orElse(providers.provider { localConfiguration.getProperty("WEARTHIS_API_BASE_URL") })
     .orElse("http://10.0.2.2:8000/")
     .get()
 
