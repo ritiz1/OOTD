@@ -2,34 +2,67 @@ from __future__ import annotations
 
 import asyncio
 import mimetypes
+import os
+import uuid
 from pathlib import Path
 from urllib.request import Request, urlopen
 
 from dotenv import load_dotenv
-from google.adk.runners import Runner
-from google.adk.sessions import InMemorySessionService
-from google.genai import types
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from rest_framework import status
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
-from description.agent import ClothingDescription, root_agent
-from wardrobe.serializers import ClothingDescriptionSchemaSerializer, DescriptionInputSerializer
+from wardrobe.serializers import (
+    ClothingDescriptionSchemaSerializer,
+    ClothingItemDescribeResponseSerializer,
+    DescriptionInputSerializer,
+)
+from wardrobe.services import persist_clothing_description
 
 
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 
 APP_NAME = "wearthis_description_api"
-USER_ID = "wearthis_api_user"
+DEFAULT_MODEL_NAME = os.getenv("WEARTHIS_GEMINI_MODEL", "gemini/gemini-3.6-flash")
 
 
-async def run_description_agent(image_bytes: bytes, mime_type: str) -> ClothingDescription:
+def _extension_for_mime(mime_type: str, fallback_name: str = "") -> str:
+    guessed = mimetypes.guess_extension(mime_type) or ""
+    if guessed:
+        return guessed
+    suffix = Path(fallback_name).suffix
+    return suffix if suffix else ".bin"
+
+
+def save_uploaded_image(*, user_id, image_bytes: bytes, mime_type: str, filename: str) -> str:
+    """Persist uploaded bytes under wardrobe/<user_id>/ and return the media URL."""
+
+    extension = _extension_for_mime(mime_type, filename)
+    storage_path = f"wardrobe/{user_id}/{uuid.uuid4().hex}{extension}"
+    saved_path = default_storage.save(storage_path, ContentFile(image_bytes))
+    return default_storage.url(saved_path)
+
+
+async def run_description_agent(
+    image_bytes: bytes,
+    mime_type: str,
+    *,
+    user_id: str,
+):
     """Call the configured description agent asynchronously using the ADK runner."""
 
+    from google.adk.runners import Runner
+    from google.adk.sessions import InMemorySessionService
+    from google.genai import types
+
+    from description.agent import ClothingDescription, root_agent
+
     session_service = InMemorySessionService()
-    session = await session_service.create_session(app_name=APP_NAME, user_id=USER_ID)
+    session = await session_service.create_session(app_name=APP_NAME, user_id=user_id)
     runner = Runner(app_name=APP_NAME, agent=root_agent, session_service=session_service)
 
     message = types.Content(
@@ -43,7 +76,7 @@ async def run_description_agent(image_bytes: bytes, mime_type: str) -> ClothingD
     result: object | None = None
     final_text: str | None = None
     async for event in runner.run_async(
-        user_id=USER_ID,
+        user_id=user_id,
         session_id=session.id,
         new_message=message,
     ):
@@ -57,7 +90,7 @@ async def run_description_agent(image_bytes: bytes, mime_type: str) -> ClothingD
     if result is None:
         latest_session = await session_service.get_session(
             app_name=APP_NAME,
-            user_id=USER_ID,
+            user_id=user_id,
             session_id=session.id,
         )
         result = latest_session.state.get("clothing_description")
@@ -74,13 +107,14 @@ async def run_description_agent(image_bytes: bytes, mime_type: str) -> ClothingD
 @api_view(["POST"])
 @parser_classes([MultiPartParser, FormParser])
 def describe_clothing_item(request):
-    """Accept an uploaded image or remote image URL and return the agent schema payload."""
+    """Accept an image, run the description agent, and persist a ClothingItem."""
 
     serializer = DescriptionInputSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
     uploaded_image = serializer.validated_data.get("image")
     uploaded_url = serializer.validated_data.get("image_url")
+    user_id = str(request.user.id)
 
     if uploaded_image:
         image_bytes = uploaded_image.read()
@@ -90,11 +124,18 @@ def describe_clothing_item(request):
                 {"detail": "Unsupported image content type."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        image_url = save_uploaded_image(
+            user_id=user_id,
+            image_bytes=image_bytes,
+            mime_type=mime_type,
+            filename=uploaded_image.name,
+        )
     elif uploaded_url:
         request_obj = Request(uploaded_url, method="GET")
         with urlopen(request_obj, timeout=30) as response:
             image_bytes = response.read()
             mime_type = response.headers.get_content_type() or "image/jpeg"
+        image_url = uploaded_url
     else:
         return Response(
             {"detail": "Provide an uploaded image or image_url."},
@@ -102,7 +143,9 @@ def describe_clothing_item(request):
         )
 
     try:
-        model_payload = asyncio.run(run_description_agent(image_bytes, mime_type))
+        model_payload = asyncio.run(
+            run_description_agent(image_bytes, mime_type, user_id=user_id)
+        )
     except Exception as exc:
         return Response(
             {"detail": str(exc)},
@@ -111,6 +154,28 @@ def describe_clothing_item(request):
 
     payload = model_payload.model_dump(mode="json")
     output = ClothingDescriptionSchemaSerializer(data=payload)
-    if output.is_valid():
-        return Response(output.validated_data, status=status.HTTP_200_OK)
-    return Response(output.errors, status=status.HTTP_400_BAD_REQUEST)
+    if not output.is_valid():
+        return Response(output.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    item = persist_clothing_description(
+        user=request.user,
+        image_url=image_url,
+        description=output.validated_data,
+        model_name=DEFAULT_MODEL_NAME,
+    )
+
+    response = ClothingItemDescribeResponseSerializer(
+        {
+            "id": item.id,
+            "image_url": item.image_url,
+            "user": item.user_id,
+            "description": item.analysis.raw_response,
+            "analysis": {
+                "id": item.analysis_id,
+                "model_name": item.analysis.model_name,
+                "model_version": item.analysis.model_version,
+                "overall_confidence": item.analysis.overall_confidence,
+            },
+        }
+    )
+    return Response(response.data, status=status.HTTP_201_CREATED)
