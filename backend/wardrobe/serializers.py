@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from rest_framework import serializers
 
+from wardrobe.models import ClothingItem
+
 
 class DescriptionInputSerializer(serializers.Serializer):
     """Validate an image upload or an image URL for the description agent."""
@@ -47,6 +49,136 @@ class ClothingItemDescribeResponseSerializer(serializers.Serializer):
     user = serializers.UUIDField()
     description = ClothingDescriptionSchemaSerializer()
     analysis = ClothingAnalysisResponseSerializer()
+
+
+class ClothingItemSummarySerializer(serializers.ModelSerializer):
+    """Small, image-first representation used by the wardrobe grid."""
+
+    type = serializers.SerializerMethodField()
+    primary_color = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ClothingItem
+        fields = ("id", "image_url", "type", "primary_color", "created_at")
+
+    def get_type(self, item):
+        return {
+            "name": item.type.name,
+            "subcategory": item.type.subcategory.name,
+        }
+
+    def get_primary_color(self, item):
+        color = item.color_group.items.filter(role="primary").select_related("color").first()
+        if color is None:
+            color = item.color_group.items.select_related("color").first()
+        return color.color.name if color else None
+
+
+class ClothingItemDetailSerializer(serializers.ModelSerializer):
+    """Full normalized clothing metadata for the item detail screen."""
+
+    type = serializers.SerializerMethodField()
+    colors = serializers.SerializerMethodField()
+    materials = serializers.SerializerMethodField()
+    patterns = serializers.SerializerMethodField()
+    details = serializers.SerializerMethodField()
+    styles = serializers.SerializerMethodField()
+    pockets = serializers.SerializerMethodField()
+    visual_attributes = serializers.SerializerMethodField()
+    analysis = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ClothingItem
+        fields = (
+            "id",
+            "image_url",
+            "type",
+            "colors",
+            "materials",
+            "patterns",
+            "details",
+            "styles",
+            "pockets",
+            "visual_attributes",
+            "analysis",
+            "created_at",
+            "updated_at",
+        )
+
+    def get_type(self, item):
+        attributes = item.type.attributes
+        attribute_values = {
+            field.name: getattr(attributes, field.name)
+            for field in attributes._meta.concrete_fields
+            if field.name != "id"
+        }
+        return {
+            "name": item.type.name,
+            "subcategory": item.type.subcategory.name,
+            "attributes": attribute_values,
+        }
+
+    def get_colors(self, item):
+        return [
+            {"name": entry.color.name, "role": entry.role, "percentage": entry.percentage}
+            for entry in item.color_group.items.select_related("color").all()
+        ]
+
+    def get_materials(self, item):
+        return [
+            {"name": entry.material.name, "percentage": entry.percentage}
+            for entry in item.material_group.items.select_related("material").all()
+        ]
+
+    def get_patterns(self, item):
+        return [
+            {
+                "name": entry.pattern.name,
+                "scale": entry.scale,
+                "density": entry.density,
+                "orientation": entry.orientation,
+            }
+            for entry in item.pattern_group.items.select_related("pattern").all()
+        ]
+
+    def get_details(self, item):
+        return [entry.detail.name for entry in item.detail_group.items.select_related("detail").all()]
+
+    def get_styles(self, item):
+        return [
+            {"name": entry.style.name, "confidence": entry.confidence}
+            for entry in item.style_group.items.select_related("style").all()
+        ]
+
+    def get_pockets(self, item):
+        return [
+            {"name": entry.pocket_type.name, "count": entry.count}
+            for entry in item.pocket_group.items.select_related("pocket_type").all()
+        ]
+
+    def get_visual_attributes(self, item):
+        return {
+            field.name: getattr(item.visual_attributes, field.name)
+            for field in item.visual_attributes._meta.concrete_fields
+            if field.name != "id"
+        }
+
+    def get_analysis(self, item):
+        if item.analysis is None:
+            return None
+        return ClothingAnalysisResponseSerializer(item.analysis).data
+
+
+class ClothingItemUpdateSerializer(serializers.Serializer):
+    """Accept an optional replacement of all AI-detected item attributes."""
+
+    image_url = serializers.CharField(required=False, allow_blank=False)
+    description = ClothingDescriptionSchemaSerializer(required=False)
+
+    def validate(self, attrs):
+        if not attrs:
+            raise serializers.ValidationError("Provide 'image_url' or 'description'.")
+        return attrs
 
 
 class ScheduleWeatherSerializer(serializers.Serializer):

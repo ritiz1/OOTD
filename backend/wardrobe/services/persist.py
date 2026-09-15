@@ -176,3 +176,55 @@ def persist_clothing_description(
         visual_attributes=visual_attributes,
         analysis=analysis,
     )
+
+
+@transaction.atomic
+def replace_clothing_description(*, item: ClothingItem, description: Any) -> ClothingItem:
+    """Replace an item's normalized metadata while retaining its public identity.
+
+    Clothing metadata is stored in several one-to-one groups.  Reusing the same
+    persistence path as AI analysis keeps a user edit subject to exactly the
+    same choice validation and prevents recommendation data from becoming stale.
+    """
+
+    old_relations = {
+        field: getattr(item, field)
+        for field in (
+            "type",
+            "color_group",
+            "material_group",
+            "pattern_group",
+            "detail_group",
+            "style_group",
+            "pocket_group",
+            "visual_attributes",
+            "analysis",
+        )
+    }
+    replacement = persist_clothing_description(
+        user=item.user,
+        image_url=item.image_url,
+        description=description,
+        model_name="user-edit",
+    )
+
+    replacement_fields = tuple(old_relations)
+    # Clear the one-to-one ownership rows before assigning their related
+    # objects to the retained item. Deleting ClothingItem does not delete the
+    # objects it points to, so the freshly built metadata remains available.
+    replacement.delete()
+    for field in replacement_fields:
+        setattr(item, field, getattr(replacement, field))
+    item.save(update_fields=[*replacement_fields, "updated_at"])
+
+    # Every relation below is one-to-one with an item. Clean up the replaced
+    # records so edits do not leave orphaned attribute/group rows behind.
+    old_type = old_relations.pop("type")
+    old_attributes = old_type.attributes
+    old_type.delete()
+    old_attributes.delete()
+    for relation in old_relations.values():
+        if relation is not None:
+            relation.delete()
+
+    return item
