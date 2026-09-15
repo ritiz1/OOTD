@@ -1,0 +1,8 @@
+# Keep only the two application directories at the repository root.
+/*
+!/.gitignore
+!/Readme.md
+!/frontend/
+!/frontend/**
+!/backend/
+!/backend/**
