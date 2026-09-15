@@ -159,7 +159,7 @@ All endpoints other than registration and token issuance require
 | Authentication | `POST /api/auth/token/` | Sign in with email/password. |
 | Authentication | `POST /api/auth/token/refresh/` | Refresh an access token. |
 | Profile | `GET` / `PATCH /api/auth/me/` | Read or update the current user. |
-| Wardrobe | `POST /api/wardrobe/describe/` | Upload an image (or send `image_url`), generate metadata, and save an item. |
+| Wardrobe | `POST /api/wardrobe/describe/` | Send multipart form data with an `image` upload or an `image_url`, generate metadata, and save an item. |
 | Wardrobe | `GET /api/wardrobe/items/` | List the current user's clothing. |
 | Wardrobe item | `GET` / `PATCH` / `DELETE /api/wardrobe/items/{id}/` | View, edit, or remove one item. |
 | Recommendations | `POST /api/wardrobe/recommend/` | Generate outfits for a supplied schedule. |

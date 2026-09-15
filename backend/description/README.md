@@ -19,8 +19,8 @@ Add the following to `backend/.env` (create it from `.env.example` if needed):
 
 ```dotenv
 GEMINI_API_KEY=your-google-ai-studio-key
-# Optional: defaults to gemini/gemini-3.6-flash
-WEARTHIS_GEMINI_MODEL=gemini/gemini-3.6-flash
+# Optional: defaults to gemini-3.8-flash before trying built-in fallbacks
+WEARTHIS_GEMINI_MODEL=gemini-3.8-flash
 ```
 
 `agent.py` loads that backend `.env` explicitly because ADK's LiteLLM adapter
