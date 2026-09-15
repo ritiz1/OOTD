@@ -13,6 +13,9 @@ import os
 from typing import Annotated, Literal, Union
 
 from dotenv import load_dotenv
+# Import this before ADK can lazily import LiteLLM. See litellm_compat for the
+# Python 3.10 compatibility detail.
+import litellm_compat  # noqa: F401
 from google.adk.agents import Agent
 from google.adk.models.lite_llm import LiteLlm
 from pydantic import BaseModel, ConfigDict, Field
