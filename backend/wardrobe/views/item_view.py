@@ -89,7 +89,11 @@ def clothing_item_list(request):
     """Return the caller's image-first wardrobe grid, with optional filters."""
 
     items = _apply_filters(_item_queryset(request.user), request.query_params)
-    return Response(ClothingItemSummarySerializer(items, many=True).data)
+    return Response(
+        ClothingItemSummarySerializer(
+            items, many=True, context={"request": request}
+        ).data
+    )
 
 
 @api_view(["GET", "PATCH", "DELETE"])
@@ -102,7 +106,9 @@ def clothing_item_detail(request, item_id):
         return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == "GET":
-        return Response(ClothingItemDetailSerializer(item).data)
+        return Response(
+            ClothingItemDetailSerializer(item, context={"request": request}).data
+        )
 
     if request.method == "DELETE":
         item.delete()
@@ -118,4 +124,6 @@ def clothing_item_detail(request, item_id):
         item.save(update_fields=["image_url", "updated_at"])
 
     item = _item_queryset(request.user).get(pk=item.pk)
-    return Response(ClothingItemDetailSerializer(item).data)
+    return Response(
+        ClothingItemDetailSerializer(item, context={"request": request}).data
+    )

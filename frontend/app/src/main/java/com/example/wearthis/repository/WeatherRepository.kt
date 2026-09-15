@@ -20,7 +20,7 @@ import java.time.ZoneId
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-// Weather requests use a separate client, so the WearThis bearer token never leaves our API.
+// Weather requests use a separate client, so the OOTD bearer token never leaves our API.
 data class WeatherPlace(val name: String, val latitude: Double, val longitude: Double)
 data class EventWeather(val temperatureC: Double, val status: String, val precipitation: String, val timezone: String)
 

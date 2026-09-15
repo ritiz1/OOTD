@@ -5,6 +5,14 @@ from rest_framework import serializers
 from wardrobe.models import ClothingItem
 
 
+def absolute_image_url(request, image_url: str) -> str:
+    """Expand a stored media path into a URL clients on other devices can load."""
+
+    if request is None:
+        return image_url
+    return request.build_absolute_uri(image_url)
+
+
 class DescriptionInputSerializer(serializers.Serializer):
     """Validate an image upload or an image URL for the description agent."""
 
@@ -54,12 +62,16 @@ class ClothingItemDescribeResponseSerializer(serializers.Serializer):
 class ClothingItemSummarySerializer(serializers.ModelSerializer):
     """Small, image-first representation used by the wardrobe grid."""
 
+    image_url = serializers.SerializerMethodField()
     type = serializers.SerializerMethodField()
     primary_color = serializers.SerializerMethodField()
 
     class Meta:
         model = ClothingItem
         fields = ("id", "image_url", "type", "primary_color", "created_at")
+
+    def get_image_url(self, item):
+        return absolute_image_url(self.context.get("request"), item.image_url)
 
     def get_type(self, item):
         return {
@@ -77,6 +89,7 @@ class ClothingItemSummarySerializer(serializers.ModelSerializer):
 class ClothingItemDetailSerializer(serializers.ModelSerializer):
     """Full normalized clothing metadata for the item detail screen."""
 
+    image_url = serializers.SerializerMethodField()
     type = serializers.SerializerMethodField()
     colors = serializers.SerializerMethodField()
     materials = serializers.SerializerMethodField()
@@ -104,6 +117,9 @@ class ClothingItemDetailSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
+
+    def get_image_url(self, item):
+        return absolute_image_url(self.context.get("request"), item.image_url)
 
     def get_type(self, item):
         attributes = item.type.attributes

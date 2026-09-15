@@ -1,6 +1,8 @@
 package com.example.wearthis.data.remote
 
 import com.example.wearthis.data.dto.AuthResponseDto
+import com.example.wearthis.data.dto.ClothingDetailDto
+import com.example.wearthis.data.dto.ClothingUpdateRequestDto
 import com.example.wearthis.data.dto.ClothingUploadResponseDto
 import com.example.wearthis.data.dto.LoginRequestDto
 import com.example.wearthis.data.dto.RecommendRequestDto
@@ -8,22 +10,34 @@ import com.example.wearthis.data.dto.RecommendationResponseDto
 import com.example.wearthis.data.dto.RefreshTokenRequestDto
 import com.example.wearthis.data.dto.RefreshTokenResponseDto
 import com.example.wearthis.data.dto.RegisterRequestDto
+import com.example.wearthis.data.dto.RemoteClothingDto
 import com.example.wearthis.data.dto.UpdateUserRequestDto
 import com.example.wearthis.data.dto.UserDto
 import okhttp3.MultipartBody
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Part
+import retrofit2.http.Path
 
 interface ApiService {
     @GET("api/wardrobe/items/")
-    suspend fun clothing(): List<com.example.wearthis.data.dto.RemoteClothingDto>
+    suspend fun clothing(): List<RemoteClothingDto>
 
-    @retrofit2.http.DELETE("api/wardrobe/items/{id}/")
-    suspend fun deleteClothing(@retrofit2.http.Path("id") id: String)
+    @GET("api/wardrobe/items/{id}/")
+    suspend fun clothingDetail(@Path("id") id: String): ClothingDetailDto
+
+    @PATCH("api/wardrobe/items/{id}/")
+    suspend fun updateClothing(
+        @Path("id") id: String,
+        @Body request: ClothingUpdateRequestDto
+    ): ClothingDetailDto
+
+    @DELETE("api/wardrobe/items/{id}/")
+    suspend fun deleteClothing(@Path("id") id: String)
 
     @POST("api/auth/register/")
     suspend fun register(@Body request: RegisterRequestDto): AuthResponseDto

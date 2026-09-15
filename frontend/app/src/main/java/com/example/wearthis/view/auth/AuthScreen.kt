@@ -71,7 +71,7 @@ fun AuthScreen(
                         AuthIcon(AuthSymbol.Back, colors.onSurfaceVariant)
                     }
                 }
-                Text("WEAR THIS", modifier = Modifier.align(Alignment.Center),
+                Text("OOTD", modifier = Modifier.align(Alignment.Center),
                     style = MaterialTheme.typography.titleLarge.copy(letterSpacing = 5.sp),
                     color = colors.primary)
             }

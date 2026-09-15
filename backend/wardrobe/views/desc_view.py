@@ -19,6 +19,7 @@ from wardrobe.serializers import (
     ClothingDescriptionSchemaSerializer,
     ClothingItemDescribeResponseSerializer,
     DescriptionInputSerializer,
+    absolute_image_url,
 )
 from wardrobe.services import persist_clothing_description
 
@@ -179,7 +180,7 @@ def describe_clothing_item(request):
     response = ClothingItemDescribeResponseSerializer(
         {
             "id": item.id,
-            "image_url": item.image_url,
+            "image_url": absolute_image_url(request, item.image_url),
             "user": item.user_id,
             "description": item.analysis.raw_response,
             "analysis": {

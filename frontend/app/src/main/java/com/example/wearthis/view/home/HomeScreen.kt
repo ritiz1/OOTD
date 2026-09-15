@@ -43,6 +43,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.example.wearthis.R
+import com.example.wearthis.data.remote.toAbsoluteMediaUrl
 import com.example.wearthis.domain.model.*
 import com.example.wearthis.viewmodel.MainViewModel
 import com.example.wearthis.viewmodel.MainUiState
@@ -117,11 +118,11 @@ fun HomeScreen(
 private fun BrandHeader(name: String?, onProfile: (() -> Unit)? = null) {
     Row(Modifier.fillMaxWidth().padding(bottom = 12.dp), verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween) {
-        Text("WEAR THIS", style = MaterialTheme.typography.headlineMedium.copy(fontFamily = FontFamily.Serif,
+        Text("OOTD", style = MaterialTheme.typography.headlineMedium.copy(fontFamily = FontFamily.Serif,
             letterSpacing = (-1).sp), color = MaterialTheme.colorScheme.primary)
         if (onProfile != null) {
             FilledTonalIconButton(onClick = onProfile, shape = CircleShape) {
-                Text(name?.take(1)?.uppercase()?.ifBlank { "W" } ?: "W")
+                Text(name?.take(1)?.uppercase()?.ifBlank { "O" } ?: "O")
             }
         } else { LineIcon("sparkle") }
     }
@@ -421,7 +422,12 @@ private fun PlanDetail(plan: OutfitPlan, state: MainUiState, vm: MainViewModel, 
 private fun ClothingPhoto(item: ClothingItem, modifier: Modifier) {
     var failed by remember(item.localId) { mutableStateOf(false) }
     Box(modifier.background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
-        AsyncImage(model = if (item.localImagePath.isNotBlank() && File(item.localImagePath).exists()) File(item.localImagePath) else item.remoteImageUrl,
+        AsyncImage(
+            model = if (item.localImagePath.isNotBlank() && File(item.localImagePath).exists()) {
+                File(item.localImagePath)
+            } else {
+                item.remoteImageUrl?.takeIf { it.isNotBlank() }?.toAbsoluteMediaUrl()
+            },
             contentDescription = "Your uploaded clothing", modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop,
             onError = { failed = true }, onSuccess = { failed = false })
         if (failed) Text("Photo unavailable", style = MaterialTheme.typography.labelSmall)

@@ -279,7 +279,7 @@ private fun AddClothingContent(
         }
 
         Text(
-            text = "The backend upload is mocked for now.",
+            text = "Your photo is analyzed by OOTD to learn its colors, fabric, and style.",
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 12.dp),
