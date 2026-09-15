@@ -2,6 +2,7 @@ from io import BytesIO
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import models
 from django.test import TestCase, override_settings
@@ -183,6 +184,21 @@ class DescribeClothingItemPersistAPITests(TestCase):
         self.assertEqual(item.image_url, response.data["image_url"])
         mock_agent.assert_called_once()
         self.assertEqual(mock_agent.call_args.kwargs["user_id"], str(self.user.id))
+
+    @patch("wardrobe.views.desc_view.run_description_agent")
+    def test_describe_upload_removes_image_when_agent_fails(self, mock_agent):
+        mock_agent.side_effect = RuntimeError("description service unavailable")
+
+        response = self.client.post(
+            "/api/wardrobe/describe/",
+            {"image": _jpeg_upload()},
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_502_BAD_GATEWAY)
+        self.assertEqual(ClothingItem.objects.filter(user=self.user).count(), 0)
+        _, stored_files = default_storage.listdir(f"wardrobe/{self.user.id}")
+        self.assertEqual(stored_files, [])
 
     @patch("wardrobe.views.desc_view.urlopen")
     @patch("wardrobe.views.desc_view.run_description_agent")
