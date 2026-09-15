@@ -38,13 +38,15 @@ def _extension_for_mime(mime_type: str, fallback_name: str = "") -> str:
     return suffix if suffix else ".bin"
 
 
-def save_uploaded_image(*, user_id, image_bytes: bytes, mime_type: str, filename: str) -> str:
-    """Persist uploaded bytes under wardrobe/<user_id>/ and return the media URL."""
+def save_uploaded_image(
+    *, user_id, image_bytes: bytes, mime_type: str, filename: str
+) -> tuple[str, str]:
+    """Persist uploaded bytes and return its storage path and public media URL."""
 
     extension = _extension_for_mime(mime_type, filename)
     storage_path = f"wardrobe/{user_id}/{uuid.uuid4().hex}{extension}"
     saved_path = default_storage.save(storage_path, ContentFile(image_bytes))
-    return default_storage.url(saved_path)
+    return saved_path, default_storage.url(saved_path)
 
 
 async def run_description_agent(
@@ -115,6 +117,7 @@ def describe_clothing_item(request):
     uploaded_image = serializer.validated_data.get("image")
     uploaded_url = serializer.validated_data.get("image_url")
     user_id = str(request.user.id)
+    uploaded_storage_path: str | None = None
 
     if uploaded_image:
         image_bytes = uploaded_image.read()
@@ -124,7 +127,7 @@ def describe_clothing_item(request):
                 {"detail": "Unsupported image content type."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        image_url = save_uploaded_image(
+        uploaded_storage_path, image_url = save_uploaded_image(
             user_id=user_id,
             image_bytes=image_bytes,
             mime_type=mime_type,
@@ -147,6 +150,8 @@ def describe_clothing_item(request):
             run_description_agent(image_bytes, mime_type, user_id=user_id)
         )
     except Exception as exc:
+        if uploaded_storage_path:
+            default_storage.delete(uploaded_storage_path)
         return Response(
             {"detail": str(exc)},
             status=status.HTTP_502_BAD_GATEWAY,
@@ -155,14 +160,21 @@ def describe_clothing_item(request):
     payload = model_payload.model_dump(mode="json")
     output = ClothingDescriptionSchemaSerializer(data=payload)
     if not output.is_valid():
+        if uploaded_storage_path:
+            default_storage.delete(uploaded_storage_path)
         return Response(output.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    item = persist_clothing_description(
-        user=request.user,
-        image_url=image_url,
-        description=output.validated_data,
-        model_name=DEFAULT_MODEL_NAME,
-    )
+    try:
+        item = persist_clothing_description(
+            user=request.user,
+            image_url=image_url,
+            description=output.validated_data,
+            model_name=DEFAULT_MODEL_NAME,
+        )
+    except Exception:
+        if uploaded_storage_path:
+            default_storage.delete(uploaded_storage_path)
+        raise
 
     response = ClothingItemDescribeResponseSerializer(
         {
