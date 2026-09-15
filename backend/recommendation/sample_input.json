@@ -1,0 +1,111 @@
+{
+  "clothing_items": [
+    {
+      "id": "00000000-0000-4000-8000-000000000101",
+      "user_id": "00000000-0000-4000-8000-000000000001",
+      "type_id": "00000000-0000-4000-8000-000000000201",
+      "color_group_id": "cg-shirt",
+      "material_group_id": "mg-shirt",
+      "pattern_group_id": "pg-solid",
+      "detail_group_id": "dg-empty",
+      "style_group_id": "sg-shirt",
+      "pocket_group_id": "pkg-empty",
+      "visual_attributes_id": "va-shirt"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000102",
+      "user_id": "00000000-0000-4000-8000-000000000001",
+      "type_id": "00000000-0000-4000-8000-000000000202",
+      "color_group_id": "cg-pants",
+      "material_group_id": "mg-pants",
+      "pattern_group_id": "pg-solid",
+      "detail_group_id": "dg-empty",
+      "style_group_id": "sg-pants",
+      "pocket_group_id": "pkg-empty",
+      "visual_attributes_id": "va-pants"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000103",
+      "user_id": "00000000-0000-4000-8000-000000000001",
+      "type_id": "00000000-0000-4000-8000-000000000203",
+      "color_group_id": "cg-shoes",
+      "material_group_id": "mg-shoes",
+      "pattern_group_id": "pg-solid",
+      "detail_group_id": "dg-empty",
+      "style_group_id": "sg-shoes",
+      "pocket_group_id": "pkg-empty",
+      "visual_attributes_id": "va-shoes"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000104",
+      "user_id": "00000000-0000-4000-8000-000000000001",
+      "type_id": "00000000-0000-4000-8000-000000000204",
+      "color_group_id": "cg-jacket",
+      "material_group_id": "mg-jacket",
+      "pattern_group_id": "pg-solid",
+      "detail_group_id": "dg-empty",
+      "style_group_id": "sg-jacket",
+      "pocket_group_id": "pkg-empty",
+      "visual_attributes_id": "va-jacket"
+    }
+  ],
+  "clothing_types": [
+    {"id": "00000000-0000-4000-8000-000000000201", "name": "top", "subcategory_id": "sc-shirt", "top_attributes_id": "ta-shirt", "bottom_attributes_id": null, "dress_attributes_id": null, "outerwear_attributes_id": null, "footwear_attributes_id": null, "one_piece_attributes_id": null},
+    {"id": "00000000-0000-4000-8000-000000000202", "name": "bottom", "subcategory_id": "sc-trousers", "top_attributes_id": null, "bottom_attributes_id": "ba-pants", "dress_attributes_id": null, "outerwear_attributes_id": null, "footwear_attributes_id": null, "one_piece_attributes_id": null},
+    {"id": "00000000-0000-4000-8000-000000000203", "name": "footwear", "subcategory_id": "sc-sneakers", "top_attributes_id": null, "bottom_attributes_id": null, "dress_attributes_id": null, "outerwear_attributes_id": null, "footwear_attributes_id": "fa-shoes", "one_piece_attributes_id": null},
+    {"id": "00000000-0000-4000-8000-000000000204", "name": "outerwear", "subcategory_id": "sc-jacket", "top_attributes_id": null, "bottom_attributes_id": null, "dress_attributes_id": null, "outerwear_attributes_id": "oa-jacket", "footwear_attributes_id": null, "one_piece_attributes_id": null}
+  ],
+  "clothing_subcategories": [
+    {"id": "sc-shirt", "type_name": "top", "name": "button_up"},
+    {"id": "sc-trousers", "type_name": "bottom", "name": "trousers"},
+    {"id": "sc-sneakers", "type_name": "footwear", "name": "sneakers"},
+    {"id": "sc-jacket", "type_name": "outerwear", "name": "jacket"}
+  ],
+  "top_attributes": [{"id": "ta-shirt", "sleeve_length": "long", "fit": "regular"}],
+  "bottom_attributes": [{"id": "ba-pants", "fit": "regular", "length": "full"}],
+  "footwear_attributes": [{"id": "fa-shoes", "shoe_profile": "low_top"}],
+  "outerwear_attributes": [{"id": "oa-jacket", "insulation": "light"}],
+  "clothing_color_groups": [{"id": "cg-shirt"}, {"id": "cg-pants"}, {"id": "cg-shoes"}, {"id": "cg-jacket"}],
+  "clothing_color_group_items": [
+    {"group_id": "cg-shirt", "color_id": "c-white", "role": "primary"},
+    {"group_id": "cg-pants", "color_id": "c-navy", "role": "primary"},
+    {"group_id": "cg-shoes", "color_id": "c-white", "role": "primary"},
+    {"group_id": "cg-jacket", "color_id": "c-navy", "role": "primary"}
+  ],
+  "colors": [{"id": "c-white", "name": "white"}, {"id": "c-navy", "name": "navy"}],
+  "clothing_material_groups": [{"id": "mg-shirt"}, {"id": "mg-pants"}, {"id": "mg-shoes"}, {"id": "mg-jacket"}],
+  "clothing_material_group_items": [
+    {"group_id": "mg-shirt", "material_id": "m-cotton"},
+    {"group_id": "mg-pants", "material_id": "m-cotton"},
+    {"group_id": "mg-shoes", "material_id": "m-leather"},
+    {"group_id": "mg-jacket", "material_id": "m-nylon"}
+  ],
+  "materials": [{"id": "m-cotton", "name": "cotton"}, {"id": "m-leather", "name": "leather"}, {"id": "m-nylon", "name": "nylon"}],
+  "clothing_pattern_groups": [{"id": "pg-solid"}],
+  "clothing_pattern_group_items": [{"group_id": "pg-solid", "pattern_id": "p-solid"}],
+  "patterns": [{"id": "p-solid", "name": "solid"}],
+  "clothing_detail_groups": [{"id": "dg-empty"}],
+  "clothing_detail_group_items": [],
+  "details": [],
+  "clothing_style_groups": [{"id": "sg-shirt"}, {"id": "sg-pants"}, {"id": "sg-shoes"}, {"id": "sg-jacket"}],
+  "clothing_style_group_items": [
+    {"group_id": "sg-shirt", "style_id": "s-smart-casual"},
+    {"group_id": "sg-pants", "style_id": "s-smart-casual"},
+    {"group_id": "sg-shoes", "style_id": "s-casual"},
+    {"group_id": "sg-jacket", "style_id": "s-casual"}
+  ],
+  "styles": [{"id": "s-smart-casual", "name": "smart_casual"}, {"id": "s-casual", "name": "casual"}],
+  "clothing_pocket_groups": [{"id": "pkg-empty"}],
+  "clothing_pocket_group_items": [],
+  "pocket_types": [],
+  "visual_attributes": [
+    {"id": "va-shirt", "brightness": "light"},
+    {"id": "va-pants", "brightness": "dark"},
+    {"id": "va-shoes", "brightness": "light"},
+    {"id": "va-jacket", "brightness": "dark"}
+  ],
+  "schedule": [
+    {"event_id": "morning-class", "start_time": "09:00", "end_time": "11:00", "activity": "Class on campus", "weather": {"status": "cool and breezy", "temperature_c": 12, "precipitation": "none"}},
+    {"event_id": "evening-dinner", "start_time": "19:00", "end_time": "21:00", "activity": "Casual dinner indoors", "weather": {"status": "mild and dry", "temperature_c": 19, "precipitation": "none"}}
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "recommendations": [
+    {
+      "event_id": "morning-class",
+      "start_time": "09:00",
+      "end_time": "11:00",
+      "activity": "Class on campus",
+      "clothing_item_ids": [
+        "00000000-0000-4000-8000-000000000101",
+        "00000000-0000-4000-8000-000000000102",
+        "00000000-0000-4000-8000-000000000103",
+        "00000000-0000-4000-8000-000000000104"
+      ],
+      "keep_item_ids": [],
+      "remove_item_ids": [],
+      "put_on_item_ids": [
+        "00000000-0000-4000-8000-000000000101",
+        "00000000-0000-4000-8000-000000000102",
+        "00000000-0000-4000-8000-000000000103",
+        "00000000-0000-4000-8000-000000000104"
+      ],
+      "pack_item_ids": [],
+      "reason": "Wear the button-up shirt, trousers, sneakers, and light jacket to stay warm and comfortable during cool, breezy morning weather on campus.",
+      "warnings": []
+    },
+    {
+      "event_id": "evening-dinner",
+      "start_time": "19:00",
+      "end_time": "21:00",
+      "activity": "Casual dinner indoors",
+      "clothing_item_ids": [
+        "00000000-0000-4000-8000-000000000101",
+        "00000000-0000-4000-8000-000000000102",
+        "00000000-0000-4000-8000-000000000103"
+      ],
+      "keep_item_ids": [
+        "00000000-0000-4000-8000-000000000101",
+        "00000000-0000-4000-8000-000000000102",
+        "00000000-0000-4000-8000-000000000103"
+      ],
+      "remove_item_ids": ["00000000-0000-4000-8000-000000000104"],
+      "put_on_item_ids": [],
+      "pack_item_ids": [],
+      "reason": "Remove the jacket for a comfortable indoor smart-casual dinner in mild temperatures, keeping the shirt, trousers, and sneakers.",
+      "warnings": []
+    }
+  ]
+}
