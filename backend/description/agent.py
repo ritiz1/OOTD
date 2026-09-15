@@ -100,6 +100,7 @@ HoodType = Literal["none", "fixed", "detachable", "oversized", "drawstring"]
 TopFit = Literal["skinny", "slim", "fitted", "regular", "relaxed", "oversized", "boxy"]
 LegShape = Literal["none", "skinny", "slim", "straight", "tapered", "wide", "flare", "bootcut", "baggy", "carrot"]
 BottomLength = Literal["micro", "short", "knee", "below_knee", "cropped", "ankle", "full", "floor"]
+HemStyle = Literal["none", "straight", "curved", "rounded", "asymmetric", "cropped", "ribbed", "raw", "split"]
 
 
 class TopAttributes(StrictModel):
@@ -108,7 +109,7 @@ class TopAttributes(StrictModel):
     neckline: Neckline
     collar_type: CollarType
     shoulder_style: Literal["none", "regular", "drop_shoulder", "raglan", "structured", "padded", "off_shoulder", "one_shoulder"]
-    hem_style: Literal["none", "straight", "curved", "rounded", "asymmetric", "cropped", "ribbed", "raw", "split"]
+    hem_style: HemStyle
     closure_type: TopClosure
     hood_type: HoodType
     fit: TopFit
@@ -119,9 +120,7 @@ class BottomAttributes(StrictModel):
     rise: Literal["none", "low", "mid", "high", "ultra_high"]
     leg_shape: LegShape
     waistband_type: Literal["none", "standard", "elastic", "drawstring", "belted", "ribbed", "foldover"]
-    # The database gives no bottom-specific hem vocabulary. Keep the output at
-    # the documented inapplicable value rather than inventing new lookup rows.
-    hem_style: Literal["none"]
+    hem_style: HemStyle
     closure_type: Literal["none", "zip_fly", "button_fly", "buttons", "drawstring", "elastic", "hook_and_bar", "side_zip"]
     fit: Literal["skinny", "slim", "regular", "relaxed", "loose", "baggy", "oversized"]
     length: BottomLength
