@@ -1,6 +1,6 @@
-# WearThis
+# OOTD: Your Outfit of the Day
 
-WearThis is an Android wardrobe app backed by a Django REST API. Users can
+OOTD is an Android wardrobe app backed by a Django REST API. Users can
 create an account, describe and save clothing from an image, manage their
 wardrobe, and request AI-generated outfit plans for scheduled events.
 
