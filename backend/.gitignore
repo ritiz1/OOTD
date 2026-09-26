@@ -11,5 +11,5 @@ db.sqlite3
 staticfiles/
 media/
 WEARTHIS_Clothing_Database_Model.md
-
+description/img
 server-local.*.log

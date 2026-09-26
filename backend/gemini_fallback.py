@@ -14,14 +14,16 @@ from collections.abc import Awaitable, Callable
 from typing import TypeVar
 
 
-# Ordered from highest-capability Flash model to lower-cost fallbacks.  See:
-# https://ai.google.dev/gemini-api/docs/pricing
+# Ordered for WearThis's workload: favor the high-volume Flash-Lite models,
+# then use the lower-quota Flash models for increasingly broad fallbacks.
 FREE_TIER_MODEL_ORDER = (
+    "gemini-3.5-flash-lite",
     "gemini-3.8-flash",
+    "gemini-3.1-flash-lite",
     "gemini-3.7-flash",
     "gemini-3.6-flash",
     "gemini-3.5-flash",
-    "gemini-3.1-flash-lite",
+    "gemini-3-flash-preview",
     "gemini-2.5-flash",
     "gemini-2.5-flash-lite",
 )

@@ -287,4 +287,4 @@ def create_agent(model_name: str) -> Agent:
 
 # Retained for standalone agent tooling; API requests use create_agent() so they
 # can select a retry/fallback model.
-root_agent = create_agent(os.getenv("WEARTHIS_GEMINI_MODEL", "gemini-3.8-flash").removeprefix("gemini/"))
+root_agent = create_agent(os.getenv("WEARTHIS_GEMINI_MODEL", "gemini-3.5-flash-lite").removeprefix("gemini/"))

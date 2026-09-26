@@ -1,10 +1,32 @@
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import AsyncMock, patch
 
-from gemini_fallback import GeminiUnavailableError, run_with_gemini_fallback
+from gemini_fallback import (
+    FREE_TIER_MODEL_ORDER,
+    GeminiUnavailableError,
+    model_order,
+    run_with_gemini_fallback,
+)
 
 
 class GeminiFallbackTests(IsolatedAsyncioTestCase):
+    def test_default_model_order_matches_wearthis_ranking(self):
+        expected = (
+            "gemini-3.5-flash-lite",
+            "gemini-3.8-flash",
+            "gemini-3.1-flash-lite",
+            "gemini-3.7-flash",
+            "gemini-3.6-flash",
+            "gemini-3.5-flash",
+            "gemini-3-flash-preview",
+            "gemini-2.5-flash",
+            "gemini-2.5-flash-lite",
+        )
+
+        with patch.dict("os.environ", {}, clear=True):
+            self.assertEqual(FREE_TIER_MODEL_ORDER, expected)
+            self.assertEqual(model_order(), expected)
+
     async def test_retries_busy_model_three_times_before_fallback(self):
         call = AsyncMock(side_effect=[
             RuntimeError("503 Service Unavailable"),
